@@ -1,0 +1,266 @@
+---
+sidebar: sidebar 
+permalink: solutions/fsxn-disaster-recovery.html 
+keywords: bluexp automation catalog, netapp automation solutions, fsx for ontap, disaster recovery, backup 
+summary: 您可以使用此自動化解決方案、使用 Amazon FSX for NetApp ONTAP 為來源系統進行災難恢復備份。 
+---
+= Amazon FSX for NetApp ONTAP - 災難恢復
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+您可以使用此自動化解決方案、使用 Amazon FSX for NetApp ONTAP 為來源系統進行災難恢復備份。
+
+
+NOTE: Amazon FSX for NetApp ONTAP 也稱為「 * 適用於 ONTAP * 的 FSX 」。
+
+.關於本解決方案
+本解決方案所提供的自動化程式碼可在較高層級執行下列動作：
+
+* 為 ONTAP 檔案系統配置目的地 FSX
+* 為檔案系統佈建儲存虛擬機器（ SVM ）
+* 在來源和目的地系統之間建立叢集對等關係
+* 在 SnapMirror 的來源系統和目的地系統之間建立 SVM 對等關係
+* 建立目的地Volume
+* 在來源磁碟區和目的地磁碟區之間建立 SnapMirror 關係
+* 在來源磁碟區和目的地磁碟區之間啟動 SnapMirror 傳輸
+
+
+自動化是以 Docker 和 Docker Compose 為基礎、必須安裝在 Linux 虛擬機器上、如下所述。
+
+.開始之前
+您必須具備下列條件才能完成資源配置與組態：
+
+* 您需要透過 BlueXP  Web UI 下載 https://console.bluexp.netapp.com/automationCatalog["Amazon FSX for NetApp ONTAP - 災難恢復"^]自動化解決方案。解決方案包裝為 `FSxN_DR.zip`。此 zip 包含 `AWS_FSxN_Bck_Prov.zip`您將用來部署本文件所述解決方案的檔案。
+* 來源與目的地系統之間的網路連線。
+* 具有下列特性的 Linux VM ：
++
+** 以 Debian 為基礎的 Linux 套裝作業系統
+** 部署在用於 FSX 以進行 ONTAP 資源配置的同一 VPC 子集上
+
+
+* AWS 帳戶。
+
+
+
+
+== 步驟 1 ：安裝及設定 Docker
+
+在以 Debian 為基礎的 Linux 虛擬機器中安裝及設定 Docker 。
+
+.步驟
+. 準備好環境。
++
+[source, cli]
+----
+sudo apt-get update
+sudo apt-get install apt-transport-https ca-certificates curl gnupg-agent softwareproperties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+sudo apt-get update
+----
+. 安裝 Docker 並驗證安裝。
++
+[source, cli]
+----
+sudo apt-get install docker-ce docker-ce-cli containerd.io
+docker --version
+----
+. 將所需的 Linux 群組與相關的使用者一起新增。
++
+請先檢查 Linux 系統中是否存在 * 泊塢視窗 * 群組。如果不存在、請建立群組並新增使用者。根據預設、目前的 Shell 使用者會新增至群組。
+
++
+[source, cli]
+----
+sudo groupadd docker
+sudo usermod -aG docker $(whoami)
+----
+. 啟動新的群組和使用者定義
++
+如果您與使用者一起建立新群組、則需要啟動定義。若要這麼做、您可以先登出 Linux 、然後再重新登入。或者、您也可以執行下列命令。
+
++
+[source, cli]
+----
+newgrp docker
+----
+
+
+
+
+== 步驟 2 ：安裝 Docker Compose
+
+在以 Debian 為基礎的 Linux 虛擬機器中安裝 Docker Compose 。
+
+.步驟
+. 安裝 Docker Compose 。
++
+[source, cli]
+----
+sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+----
+. 確認安裝成功。
++
+[source, cli]
+----
+docker-compose --version
+----
+
+
+
+
+== 步驟 3 ：準備 Docker 映像檔
+
+您需要擷取並載入自動化解決方案隨附的 Docker 映像。
+
+.步驟
+. 將解決方案檔案複製 `AWS_FSxN_Bck_Prov.zip`到執行自動化程式碼的虛擬機器。
++
+[source, cli]
+----
+scp -i ~/<private-key.pem> -r AWS_FSxN_Bck_Prov.zip user@<IP_ADDRESS_OF_VM>
+----
++
+輸入參數 `private-key.pem`是用於 AWS 虛擬機器驗證（ EC2 執行個體）的私密金鑰檔案。
+
+. 使用解決方案檔案瀏覽至正確的資料夾、然後解壓縮檔案。
++
+[source, cli]
+----
+unzip AWS_FSxN_Bck_Prov.zip
+----
+. 瀏覽至以解壓縮作業建立的新資料夾 `AWS_FSxN_Bck_Prov`、並列出檔案。您應該會看到 file `aws_fsxn_bck_image_latest.tar.gz`。
++
+[source, cli]
+----
+ls -la
+----
+. 載入 Docker 映像檔。負載作業通常應在數秒內完成。
++
+[source, cli]
+----
+docker load -i aws_fsxn_bck_image_latest.tar.gz
+----
+. 確認已載入 Docker 映像。
++
+[source, cli]
+----
+docker images
+----
++
+您應該會看到帶有標記的 `latest` Docker 映像 `aws_fsxn_bck_image`。
+
++
+[listing]
+----
+   REPOSITORY        TAG     IMAGE ID      CREATED      SIZE
+aws_fsxn_bck_image  latest  da87d4974306  2 weeks ago  1.19GB
+----
+
+
+
+
+== 步驟 4 ：建立 AWS 認證的環境檔案
+
+您必須使用存取和秘密金鑰來建立驗證的本機變數檔案。然後將檔案新增至 `.env`檔案。
+
+.步驟
+. 在下列位置建立 `awsauth.env`檔案：
++
+`path/to/env-file/awsauth.env`
+
+. 將下列內容新增至檔案：
++
+[listing]
+----
+access_key=<>
+secret_key=<>
+----
++
+格式 *must * 與上述所示完全相同，且與 `value`之間沒有任何空格 `key`。
+
+. 使用變數將絕對檔案路徑新增至 `.env`檔案 `AWS_CREDS`。例如：
++
+`AWS_CREDS=path/to/env-file/awsauth.env`
+
+
+
+
+
+== 步驟 5 ：建立外部磁碟區
+
+您需要外部磁碟區、以確保 Terraform 狀態檔案和其他重要檔案持續存在。這些檔案必須可供 Terraform 執行工作流程和部署。
+
+.步驟
+. 在 Docker Compose 之外建立外部 Volume 。
++
+執行命令之前、請務必將 Volume 名稱（最後參數）更新為適當的值。
+
++
+[source, cli]
+----
+docker volume create aws_fsxn_volume
+----
+. 使用命令將外部磁碟區的路徑新增至 `.env`環境檔案：
++
+`PERSISTENT_VOL=path/to/external/volume:/volume_name`
+
++
+請記得保留現有的檔案內容和結腸格式。例如：
+
++
+[source, cli]
+----
+PERSISTENT_VOL=aws_fsxn_volume:/aws_fsxn_bck
+----
++
+您可以改用下列命令、將 NFS 共用新增為外部磁碟區：
+
++
+`PERSISTENT_VOL=nfs/mnt/document:/aws_fsx_bck`
+
+. 更新 Terraform 變數。
++
+.. 瀏覽至資料夾 `aws_fsxn_variables`。
+.. 確認存在以下兩個檔案： `terraform.tfvars`和 `variables.tf`。
+.. 視環境需求更新中的值 `terraform.tfvars`。
++
+如需詳細資訊、請參閱 https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/fsx_ontap_file_system["Terraform 資源： ONTAP 檔案系統"^] 。
+
+
+
+
+
+
+
+== 步驟 6 ：部署備份解決方案
+
+您可以部署和配置災難恢復備份解決方案。
+
+.步驟
+. 瀏覽至資料夾根目錄（ AWS_FSxN_Bck_Prov ）、然後發出資源配置命令。
++
+[source, cli]
+----
+docker-compose up -d
+----
++
+此命令會建立三個容器。第一個容器會部署適用於 ONTAP 的 FSX 。第二個容器會建立叢集對等關係、 SVM 對等關係和目的地 Volume 。第三個容器會建立 SnapMirror 關係、並起始 SnapMirror 傳輸。
+
+. 監控資源配置程序。
++
+[source, cli]
+----
+docker-compose logs -f
+----
++
+此命令可即時提供輸出，但已設定為透過檔案擷取記錄 `deployment.log`。您可以通過編輯文件和更新變量 `DEPLOYMENT_LOGS`來更改這些日誌文件的名稱 `.env`。
+
+

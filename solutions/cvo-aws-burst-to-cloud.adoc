@@ -1,0 +1,395 @@
+---
+sidebar: sidebar 
+permalink: solutions/cvo-aws-burst-to-cloud.html 
+keywords: bluexp automation catalog, netapp automation solutions, aws, cloud volumes ontap, burst to cloud 
+summary: 本文支援 NetApp Cloud Volumes ONTAP for AWS 自動化解決方案、 NetApp 客戶可從 BlueXP  自動化目錄取得此解決方案。 
+---
+= Cloud Volumes ONTAP for AWS - 點到雲端
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+本文支援 NetApp Cloud Volumes ONTAP for AWS 自動化解決方案、 NetApp 客戶可從 BlueXP  自動化目錄取得此解決方案。
+
+Cloud Volumes ONTAP for AWS 自動化解決方案使用 Terraform 將 Cloud Volumes ONTAP for AWS 的容器化部署作業自動化、讓您能夠快速部署 Cloud Volumes ONTAP for AWS 、無需任何手動介入。
+
+.開始之前
+* 您必須透過 BlueXP  Web UI 下載link:https://console.bluexp.netapp.com/automationCatalog["Cloud Volumes ONTAP AWS - 點到雲端"^]自動化解決方案。解決方案包裝為 `cvo_aws_flexcache.zip`。
+* 您必須在與 Cloud Volumes ONTAP 相同的網路上安裝 Linux VM 。
+* 安裝 Linux VM 之後、您必須遵循本解決方案中的步驟來安裝必要的相依性。
+
+
+
+
+== 步驟 1 ：安裝 Docker 和 Docker Compose
+
+
+
+=== 安裝Docker
+
+以下步驟以 Ubuntu 20.04 Debian Linux 發佈軟體為例。您執行的命令取決於您所使用的 Linux 發佈軟體。請參閱特定的 Linux 發佈軟體文件以瞭解您的組態。
+
+.步驟
+. 執行下列命令來安裝 Docker `sudo` ：
++
+[source, cli]
+----
+sudo apt-get update
+sudo apt-get install apt-transport-https cacertificates curl gnupg-agent software-properties-common curl -fsSL https://download.docker.com/linux/ubuntu/gpg |
+sudo apt-key add -
+sudo add-apt-repository “deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable”
+sudo apt-get update
+sudo apt-get install dockerce docker-ce-cli containerd.io
+----
+. 驗證安裝：
++
+[source, cli]
+----
+docker –version
+----
+. 確認您的 Linux 系統上已建立名為「泊塢視窗」的群組。如有必要、請建立群組：
++
+[source, cli]
+----
+sudo groupadd docker
+----
+. 將需要存取 Docker 的使用者新增至群組：
++
+[source, cli]
+----
+sudo usermod -aG docker $(whoami)
+----
+. 您的變更會在登出並重新登入終端機後套用。或者、您也可以立即套用變更：
++
+[source, cli]
+----
+newgrp docker
+----
+
+
+
+
+=== 安裝 Docker Compose
+
+.步驟
+. 執行下列命令來安裝 Docker Compose `sudo` ：
++
+[source, cli]
+----
+sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+
+sudo chmod +x /usr/local/bin/docker-compose
+----
+. 驗證安裝：
++
+[source, cli]
+----
+docker-compose –version
+----
+
+
+
+
+== 步驟 2 ：準備 Docker 映像檔
+
+.步驟
+. 將資料夾複製 `cvo_aws_flexcache.zip`到您要用來部署 Cloud Volumes ONTAP 的 Linux VM ：
++
+[source, cli]
+----
+scp -i ~/<private-key>.pem -r cvo_aws_flexcache.zip <awsuser>@<IP_ADDRESS_OF_VM>:<LOCATION_TO_BE_COPIED>
+----
++
+** `private-key.pem`是您的私密金鑰檔案、無需密碼即可登入。
+** `awsuser`是 VM 使用者名稱。
+** `IP_ADDRESS_OF_VM`是 VM IP 位址。
+** `LOCATION_TO_BE_COPIED`為資料夾的複製位置。
+
+
+. 解壓縮 `cvo_aws_flexcache.zip`資料夾。您可以擷取目前目錄或自訂位置中的資料夾。
++
+若要擷取目前目錄中的資料夾、請執行：
+
++
+[source, cli]
+----
+unzip cvo_aws_flexcache.zip
+----
++
+若要擷取自訂位置中的資料夾、請執行：
+
++
+[source, cli]
+----
+unzip cvo_aws_flexcache.zip -d ~/<your_folder_name>
+----
+. 擷取內容之後、請瀏覽至 `CVO_Aws_Deployment`資料夾並執行下列命令以檢視檔案：
++
+[source, cli]
+----
+ ls -la
+----
++
+您應該會看到類似下列範例的檔案清單：
+
++
+[listing]
+----
+total 32
+    drwxr-xr-x   8 user1  staff   256 Mar 23 12:26 .
+    drwxr-xr-x   6 user1  staff   192 Mar 22 08:04 ..
+    -rw-r--r--   1 user1  staff   324 Apr 12 21:37 .env
+    -rw-r--r--   1 user1  staff  1449 Mar 23 13:19 Dockerfile
+    drwxr-xr-x  15 user1  staff   480 Mar 23 13:19 cvo_Aws_source_code
+    drwxr-xr-x   4 user1  staff   128 Apr 27 13:43 cvo_Aws_variables
+    -rw-r--r--   1 user1  staff   996 Mar 24 04:06 docker-compose-deploy.yml
+    -rw-r--r--   1 user1  staff  1041 Mar 24 04:06 docker-compose-destroy.yml
+----
+. 找到 `cvo_aws_flexcache_ubuntu_image.tar`檔案。其中包含部署 Cloud Volumes ONTAP for AWS 所需的 Docker 映像。
+. 解壓縮檔案：
++
+[source, cli]
+----
+docker load -i cvo_aws_flexcache_ubuntu_image.tar
+----
+. 等待幾分鐘、讓 Docker 映像檔載入、然後驗證 Docker 映像檔是否成功載入：
++
+[source, cli]
+----
+docker images
+----
++
+您應該會看到一個以 `latest`標記命名的 Docker 映像 `cvo_aws_flexcache_ubuntu_image`、如下列範例所示：
+
++
+[listing]
+----
+REPOSITORY                            TAG        IMAGE ID       CREATED      SIZE
+ cvo_aws_flexcache_ubuntu_image     latest    18db15a4d59c   2 weeks ago   1.14GB
+----
++
+
+NOTE: 您可以視需要變更 Docker 映像名稱。如果您變更 Docker 映像名稱、請務必更新和 `docker-compose-destroy`檔案中的 Docker 映像名稱 `docker-compose-deploy`。
+
+
+
+
+
+== 步驟 3 ：建立環境變數檔案
+
+在此階段、您必須建立兩個環境變數檔案。其中一個檔案是使用 AWS 存取和秘密金鑰來驗證 AWS 資源管理員 API 。第二個檔案用於設定環境變數、讓 BlueXP  Terraform 模組能夠找出並驗證 AWS API 。
+
+.步驟
+. 在下列位置建立 `awsauth.env`檔案：
++
+`path/to/env-file/awsauth.env`
+
++
+.. 將下列內容新增至 `awsauth.env`檔案：
++
+access_key=<> secret _key=<>
+
++
+格式 *must * 與上圖完全相同。
+
+
+
+. 將絕對檔案路徑新增至 `.env`檔案。
++
+輸入與環境變數對應的環境檔案 `AWS_CREDS`絕對路徑 `awsauth.env`。
+
++
+`AWS_CREDS=path/to/env-file/awsauth.env`
+
+. 瀏覽至 `cvo_aws_variable`資料夾、並更新認證檔案中的存取和秘密金鑰。
++
+將下列內容新增至檔案：
+
++
+AWS 存取金鑰識別碼 =<> AWS_secret 存取金鑰 =<>
+
++
+格式 *must * 與上圖完全相同。
+
+
+
+
+
+== 步驟 4 ：將 Cloud Volumes ONTAP 授權新增至 BlueXP  或訂閱 BlueXP 
+
+您可以將 Cloud Volumes ONTAP 授權新增至 BlueXP  、或在 AWS Marketplace 中訂閱 NetApp BlueXP  。
+
+.步驟
+. 從 AWS 入口網站瀏覽至 * SaaS * 、然後選取 * 訂閱 NetApp BlueXP  * 。
++
+您可以使用與 Cloud Volumes ONTAP 相同的資源群組或不同的資源群組。
+
+. 設定 BlueXP  入口網站、將 SaaS 訂閱匯入 BlueXP  。
++
+您可以直接從 AWS 入口網站進行設定。
+
++
+系統會將您重新導向至 BlueXP  入口網站、以確認組態。
+
+. 選取 * 儲存 * 、確認 BlueXP  入口網站中的組態。
+
+
+
+
+== 步驟 5 ：建立外部磁碟區
+
+您應該建立外部磁碟區、以保留 Terraform 狀態檔案及其他重要檔案。您必須確定 Terraform 可以使用這些檔案來執行工作流程和部署。
+
+.步驟
+. 在 Docker Compose 之外建立外部 Volume ：
++
+[source, cli]
+----
+docker volume create <volume_name>
+----
++
+範例：
+
++
+[listing]
+----
+docker volume create cvo_aws_volume_dst
+----
+. 請使用下列其中一個選項：
++
+.. 新增外部磁碟區路徑至 `.env`環境檔案。
++
+您必須遵循如下所示的確切格式。
+
++
+格式：
+
++
+`PERSISTENT_VOL=path/to/external/volume:/cvo_aws`
+
++
+範例：
+`PERSISTENT_VOL=cvo_aws_volume_dst:/cvo_aws`
+
+.. 將 NFS 共用新增為外部磁碟區。
++
+請確定 Docker 容器可以與 NFS 共用通訊、而且已設定正確的權限、例如讀取 / 寫入。
+
++
+... 將 NFS 共用路徑新增為 Docker Compose 檔案中外部 Volume 的路徑、如下所示：格式：
++
+`PERSISTENT_VOL=path/to/nfs/volume:/cvo_aws`
+
++
+範例：
+`PERSISTENT_VOL=nfs/mnt/document:/cvo_aws`
+
+
+
+
+
+. 瀏覽至 `cvo_aws_variables`資料夾。
++
+您應該會在資料夾中看到下列變數檔案：
+
++
+** `terraform.tfvars`
+** `variables.tf`
+
+
+. 根據您的需求變更檔案內的值 `terraform.tfvars`。
++
+修改檔案中的任何變數值時、您必須閱讀特定的支援文件 `terraform.tfvars`。這些值會因地區、可用度區域和 Cloud Volumes ONTAP for AWS 支援的其他因素而異。這包括單一節點和高可用度（ HA ）配對的授權、磁碟大小和 VM 大小。
+
++
+Connector 和 Cloud Volumes ONTAP Terraform 模組的所有支援變數都已定義在檔案中 `variables.tf`。在新增至檔案之前、您必須先參考檔案 `terraform.tfvars`中的變數名稱 `variables.tf`。
+
+. 根據您的需求，您可以將下列選項設定為或，以啟用或 `false`停用 FlexCache 和 FlexClone `true` 。
++
+下列範例可啟用 FlexCache 和 FlexClone ：
+
++
+** `is_flexcache_required = true`
+** `is_flexclone_required = true`
+
+
+
+
+
+
+== 步驟 6 ：部署 Cloud Volumes ONTAP for AWS
+
+請使用下列步驟來部署 Cloud Volumes ONTAP for AWS 。
+
+.步驟
+. 從根資料夾執行下列命令以觸發部署：
++
+[source, cli]
+----
+docker-compose -f docker-compose-deploy.yml up -d
+----
++
+觸發兩個容器、第一個容器會部署 Cloud Volumes ONTAP 、第二個容器則會將遙測資料傳送至 AutoSupport 。
+
++
+第二個容器會等待、直到第一個容器成功完成所有步驟為止。
+
+. 使用記錄檔監控部署程序的進度：
++
+[source, cli]
+----
+docker-compose -f docker-compose-deploy.yml logs -f
+----
++
+此命令會即時提供輸出、並擷取下列記錄檔中的資料：
+`deployment.log`
+
++
+`telemetry_asup.log`
+
++
+您可以使用下列環境變數編輯檔案、以變更這些記錄檔的名稱 `.env`：
+
++
+`DEPLOYMENT_LOGS`
+
++
+`TELEMETRY_ASUP_LOGS`
+
++
+下列範例說明如何變更記錄檔名稱：
+
++
+`DEPLOYMENT_LOGS=<your_deployment_log_filename>.log`
+
++
+`TELEMETRY_ASUP_LOGS=<your_telemetry_asup_log_filename>.log`
+
+
+
+.完成後
+您可以使用下列步驟移除暫存環境、並清除部署程序期間建立的項目。
+
+.步驟
+. 如果您已部署 FlexCache 、請在變數檔案中設定下列選項 `terraform.tfvars`、這樣會清除 FlexCache 磁碟區、並移除先前建立的暫存環境。
++
+`flexcache_operation = "destroy"`
+
++
+
+NOTE: 可能的選項有 `deploy`和 `destroy`。
+
+. 如果您已部署 FlexClone 、請在變數檔案中設定下列選項 `terraform.tfvars`、這樣會清除 FlexClone 磁碟區、並移除先前建立的暫存環境。
++
+`flexclone_operation = "destroy"`
+
++
+
+NOTE: 可能的選項有 `deploy`和 `destroy`。
+
+

@@ -1,0 +1,24 @@
+---
+sidebar: sidebar 
+permalink: solutions/bac-overview.html 
+keywords: bluexp automation catalog, automation catalog, overview, introduction 
+summary: BlueXP  自動化目錄是 NetApp 客戶、合作夥伴和員工可用的自動化解決方案集合。目錄有幾項功能和優點。 
+---
+= BlueXP  自動化目錄總覽
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+BlueXP  自動化目錄是 NetApp 客戶、合作夥伴和員工可用的自動化解決方案集合。目錄有幾項功能和優點。
+
+滿足您自動化需求的單一位置:: 您可以透過 BlueXP  Web 使用者介面存取 https://console.bluexp.netapp.com/automationCatalog["BlueXP 自動化目錄"^]。這可為指令碼、教戰手冊和模組提供單一位置、以強化 NetApp 產品和服務的自動化與操作。
+解決方案是由 NetApp 所建立及測試:: 所有的自動化解決方案和指令碼都是由 NetApp 所建立和測試的。每個解決方案都針對特定的客戶使用案例或要求。最著重於與 NetApp 檔案和資料服務的整合。
+文件:: 每個自動化解決方案都包含相關文件、可協助您開始使用。當您透過 BlueXP  網頁介面存取解決方案時、您可以在本網站取得所有文件。文件是根據 NetApp 產品和雲端服務來組織。
+為未來奠定堅實基礎:: NetApp 致力於協助客戶改善及簡化資料中心和雲端環境的自動化。我們預期會繼續加強 BlueXP  自動化目錄、以因應客戶需求、技術變更及持續的產品整合。
+我們想聽聽您的意見:: NetApp 客戶體驗辦公室（ CXO ）自動化團隊希望能與您聯絡。如果您有任何意見反應、問題或功能要求、請傳送電子郵件至 mailto ： ng-cxO-Automation 管理員 NetApp ． com[CXO 自動化團隊 ] 。
+

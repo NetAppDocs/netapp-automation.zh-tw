@@ -1,0 +1,360 @@
+---
+sidebar: sidebar 
+permalink: solutions/anf-oracle.html 
+keywords: bluexp automation catalog, netapp automation solutions, azure, azure netapp files, oracle 
+summary: 您可以使用此自動化解決方案來配置 Azure NetApp Files Volume 、並在可用的虛擬機器上安裝 Oracle 。然後 Oracle 將這些磁碟區用於資料儲存。 
+---
+= 使用 Azure NetApp Files 安裝 Oracle
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+您可以使用此自動化解決方案來配置 Azure NetApp Files Volume 、並在可用的虛擬機器上安裝 Oracle 。然後 Oracle 將這些磁碟區用於資料儲存。
+
+.關於本解決方案
+本解決方案所提供的自動化程式碼可在較高層級執行下列動作：
+
+* 在 Azure 上設定 NetApp 帳戶
+* 在 Azure 上設定儲存容量集區
+* 根據定義配置 Azure NetApp Files 磁碟區
+* 建立掛載點
+* 將 Azure NetApp Files 磁碟區掛載至掛載點
+* 在 Linux 伺服器上安裝 Oracle
+* 建立接聽程式和資料庫
+* 建立易插拔資料庫（ PDB ）
+* 啓動偵聽器和 Oracle 實例
+* 安裝並設定 `azacsnap`公用程式以拍攝快照
+
+
+.開始之前
+您必須具備下列條件才能完成安裝：
+
+* 您需要透過 BlueXP  Web UI 下載 https://console.bluexp.netapp.com/automationCatalog["使用 Azure NetApp Files 的 Oracle"^]自動化解決方案。解決方案打包爲 file `na_oracle19c_deploy-master.zip`。
+* 具有下列特性的 Linux VM ：
++
+** RHEL 8 （ Standard_D8s_v3-RHEL-8 ）
+** 部署在用於 Azure NetApp Files 資源配置的同一個 Azure 虛擬網路上
+
+
+* Azure 帳戶
+
+
+自動化解決方案以映像形式提供、並使用 Docker 和 Docker Compose 執行。您需要如下所述、在 Linux 虛擬機器上安裝這兩個項目。
+
+您也應該使用命令向 RedHat 註冊 VM `sudo subscription-manager register` 。命令會提示您輸入帳戶認證。如有需要、您可以在 \https://developers.redhat.com/. 建立帳戶
+
+
+
+== 步驟 1 ：安裝及設定 Docker
+
+在 RHEL 8 Linux 虛擬機器中安裝及設定 Docker 。
+
+.步驟
+. 使用下列命令安裝 Docker 軟體。
++
+[source, cli]
+----
+dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+dnf install docker-ce --nobest -y
+----
+. 啟動 Docker 並顯示版本以確認安裝成功。
++
+[source, cli]
+----
+systemctl start docker
+systemctl enable docker
+docker --version
+----
+. 將所需的 Linux 群組與相關的使用者一起新增。
++
+請先檢查 Linux 系統中是否存在 * 泊塢視窗 * 群組。如果沒有、請建立群組並新增使用者。根據預設、目前的 Shell 使用者會新增至群組。
+
++
+[source, cli]
+----
+sudo groupadd docker
+sudo usermod -aG docker $USER
+----
+. 啟動新的群組和使用者定義
++
+如果您與使用者一起建立新群組、則需要啟動定義。若要這麼做、您可以先登出 Linux 、然後再重新登入。或者、您也可以執行下列命令。
+
++
+[source, cli]
+----
+newgrp docker
+----
+
+
+
+
+== 步驟 2 ：安裝 Docker Compose 和 NFS 公用程式
+
+安裝及設定 Docker Compose 及 NFS 公用程式套件。
+
+.步驟
+. 安裝 Docker Compose 並顯示版本、以確認安裝成功。
++
+[source, cli]
+----
+dnf install curl -y
+curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+docker-compose --version
+----
+. 安裝 NFS 公用程式套件。
++
+[source, cli]
+----
+sudo yum install nfs-utils
+----
+
+
+
+
+== 步驟 3 ：下載 Oracle 安裝檔案
+
+下載所需的 Oracle 安裝和修補程式檔案 `azacsnap`、以及公用程式。
+
+.步驟
+. 視需要登入您的 Oracle 帳戶。
+. 下載下列檔案。
++
+[cols="65,35"]
+|===
+| 檔案 | 說明 
+
+
+| LINUX.X64_193000_db_home.zip | 19.3 基礎安裝程式 
+
+
+| p31281355_190000_Linux-x86-64.zip | 19.8 RU 修補程式 
+
+
+| p6880880_190000_Linux-x86-64.zip | opatch 版本 12.2 ． 2 ． 1 ． 23 
+
+
+| azacsnap_installer_v5.0.run | azacSnap 安裝程式 
+|===
+. 將所有安裝文件放在文件夾中 `/tmp/archive`。
+. 確保資料庫伺服器上的所有使用者都能完整存取資料夾（讀取、寫入、執行） `/tmp/archive`。
+
+
+
+
+== 步驟 4 ：準備 Docker 映像檔
+
+您需要擷取並載入自動化解決方案隨附的 Docker 映像。
+
+.步驟
+. 將解決方案檔案複製 `na_oracle19c_deploy-master.zip`到執行自動化程式碼的虛擬機器。
++
+[source, cli]
+----
+scp -i ~/<private-key.pem> -r na_oracle19c_deploy-master.zip user@<IP_ADDRESS_OF_VM>
+----
++
+輸入參數 `private-key.pem`是用於 Azure 虛擬機器驗證的私密金鑰檔案。
+
+. 使用解決方案檔案瀏覽至正確的資料夾、然後解壓縮檔案。
++
+[source, cli]
+----
+unzip na_oracle19c_deploy-master.zip
+----
+. 瀏覽至以解壓縮作業建立的新資料夾 `na_oracle19c_deploy-master`、並列出檔案。您應該會看到 file `ora_anf_bck_image.tar`。
++
+[source, cli]
+----
+ls -lt
+----
+. 載入 Docker 映像檔。負載作業通常應在數秒內完成。
++
+[source, cli]
+----
+docker load -i ora_anf_bck_image.tar
+----
+. 確認已載入 Docker 映像。
++
+[source, cli]
+----
+docker images
+----
++
+您應該會看到帶有標記的 `latest` Docker 映像 `ora_anf_bck_image`。
+
++
+[listing]
+----
+   REPOSITORY          TAG       IMAGE ID      CREATED      SIZE
+ora_anf_bck_image    latest   ay98y7853769   1 week ago   2.58GB
+----
+
+
+
+
+== 步驟 5 ：建立外部磁碟區
+
+您需要外部磁碟區、以確保 Terraform 狀態檔案和其他重要檔案持續存在。這些檔案必須可供 Terraform 執行工作流程和部署。
+
+.步驟
+. 在 Docker Compose 之外建立外部 Volume 。
++
+請務必先更新磁碟區名稱、再執行命令。
+
++
+[source, cli]
+----
+docker volume create <VOLUME_NAME>
+----
+. 使用命令將外部磁碟區的路徑新增至 `.env`環境檔案：
++
+`PERSISTENT_VOL=path/to/external/volume:/ora_anf_prov`。
+
++
+請記得保留現有的檔案內容和結腸格式。例如：
+
++
+[source, cli]
+----
+PERSISTENT_VOL= ora_anf _volume:/ora_anf_prov
+----
+. 更新 Terraform 變數。
++
+.. 瀏覽至資料夾 `ora_anf_variables`。
+.. 確認存在以下兩個檔案： `terraform.tfvars`和 `variables.tf`。
+.. 視環境需求更新中的值 `terraform.tfvars`。
+
+
+
+
+
+
+== 步驟 6 ：安裝 Oracle
+
+您現在可以配置和安裝 Oracle 。
+
+.步驟
+. 使用下列命令順序安裝 Oracle 。
++
+[source, cli]
+----
+docker-compose up terraform_ora_anf
+bash /ora_anf_variables/setup.sh
+docker-compose up linux_config
+bash /ora_anf_variables/permissions.sh
+docker-compose up oracle_install
+----
+. 重新載入 Bash 變數、並顯示的值以確認 `ORACLE_HOME`。
++
+.. `cd /home/oracle`
+.. `source .bash_profile`
+.. `echo $ORACLE_HOME`
+
+
+. 您應該可以登入 Oracle 。
++
+[source, cli]
+----
+sudo su oracle
+----
+
+
+
+
+== 步驟 7 ：驗證 Oracle 安裝
+
+您應該確認 Oracle 安裝成功。
+
+.步驟
+. 登入 Linux Oracle 伺服器、並顯示 Oracle 程序清單。這會確認安裝已如預期完成、且 Oracle 資料庫正在執行中。
++
+[source, cli]
+----
+ps -ef | grep ora
+----
+. 登入資料庫以檢查資料庫組態、並確認已正確建立 PDB 。
++
+[source, cli]
+----
+sqlplus / as sysdba
+----
++
+您應該會看到類似下列的輸出：
+
++
+[listing]
+----
+SQL*Plus: Release 19.0.0.0.0 - Production on Thu May 6 12:52:51 2021
+Version 19.8.0.0.0
+
+Copyright (c) 1982, 2019, Oracle. All rights reserved.
+
+Connected to:
+Oracle Database 19c Enterprise Edition Release 19.0.0.0.0 - Production
+Version 19.8.0.0.0
+----
+. 執行幾個簡單的 SQL 命令、確認資料庫可用。
++
+[source, sql]
+----
+select name, log_mode from v$database;
+show pdbs.
+----
+
+
+
+
+== 步驟 8 ：安裝 azacsnap 公用程式並執行快照備份
+
+您必須安裝並執行 `azacsnap`公用程式、才能執行快照備份。
+
+.步驟
+. 安裝容器。
++
+[source, sql]
+----
+docker-compose up azacsnap_install
+----
+. 切換至 Snapshot 使用者帳戶。
++
+[source, sql]
+----
+su - azacsnap
+execute /tmp/archive/ora_wallet.sh
+----
+. 設定儲存備份詳細資料檔案。這將會建立 `azacsnap.json`組態檔案。
++
+[source, sql]
+----
+cd /home/azacsnap/bin/
+azacsnap -c configure –-configuration new
+----
+. 執行快照備份。
++
+[source, sql]
+----
+azacsnap -c backup –-other data --prefix ora_test --retention=1
+----
+
+
+
+
+== 步驟 9 ：選擇性地將內部部署的 PDB 移轉至雲端
+
+您可以選擇性地將內部部署的 PDB 移轉至雲端。
+
+.步驟
+. 視環境需求設定檔案中的變數 `tfvars`。
+. 移轉 PDB 。
++
+[source, cli]
+----
+docker-compose -f docker-compose-relocate.yml up
+----
+

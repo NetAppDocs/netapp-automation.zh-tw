@@ -1,0 +1,45 @@
+---
+sidebar: sidebar 
+permalink: support/additional-resources.html 
+keywords: addition resources, additional information, netapp documentation 
+summary: 您可以存取其他資源來取得協助、並尋找更多關於 NetApp 產品和雲端服務的資訊。 
+---
+= 其他資源
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+您可以存取其他資源來取得協助、並尋找更多關於 NetApp 產品和雲端服務的資訊。
+
+
+
+== NetApp 開發人員資源
+
+* https://devnet.netapp.com/["NetApp DevNet"^]
++
+支援 NetApp 合作夥伴和客戶的開發人員資源的中央位置。
+
+* https://netapp.io/["NetApp IO - The Pub"^]
++
+部落格文章和其他資源、以支援開發人員和管理員。
+
+
+
+
+
+== NetApp雲端資源
+
+* https://bluexp.netapp.com/["NetApp BlueXP"^]
++
+NetApp雲端解決方案的中央網站。
+
+* https://services.cloud.netapp.com/redirect-to-login?startOnSignup=false["NetApp Cloud Central主控台"^]
++
+使用登入功能的NetApp Cloud Central服務主控台。
+
+

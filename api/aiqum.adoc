@@ -1,0 +1,43 @@
+---
+sidebar: sidebar 
+permalink: api/aiqum.html 
+keywords: active iq, unified manager, active iq unified manager 
+summary: Active IQ Unified Manager （前身為 OnCommand Unified Manager ）可為您的 ONTAP 系統提供全方位的管理與監控功能。它也包含 REST API 、可將這些工作自動化、並在支援的系統上啟用協力廠商整合。 
+---
+= Active IQ Unified Manager
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+Active IQ Unified Manager （前身為 OnCommand Unified Manager ）可為您的 ONTAP 系統提供全方位的管理與監控功能。它也包含 REST API 、可將這些工作自動化、並在支援的系統上啟用協力廠商整合。
+
+
+
+== REST API 的優點
+
+使用 Active IQ Unified Manager 隨附的 REST API 有幾項優點。
+
+.強大的功能
+使用 REST API 、您可以存取 Active IQ Unified Manager 功能來管理儲存可用度、容量、安全性、保護和效能風險。
+
+.自動化整合
+有單一 REST 端點可供配置及管理工作負載。這提供簡單的整合方法、可實作服務層級目標原則、將事件重新導向至協力廠商工具、並作為 API 閘道、在個別叢集層級存取 ONTAP REST API 。
+
+.ONTAP 管理的資料中心層級自動化
+您可以在資料中心層級將 ONTAP 資源配置與管理工作流程自動化。監控與報告也可以自動化。如此可提升效率、並為資料中心層級集合提供基礎。
+
+
+
+== 取得更多資訊
+
+有幾種資源可協助您開始使用 Active IQ Unified Manager REST API 。
+
+* https://docs.netapp.com/us-en/active-iq-unified-manager/api-automation/concept_get_started_with_um_apis.html["開始使用Active IQ Unified Manager 靜態API"^]
+* https://library.netapp.com/ecmdocs/ECMLP2876865/html/index.html["Active IQ Unified Manager API 文件"^]
+* https://github.com/NetApp/Ansible-with-Active-IQ-Unified-Manager["適用於 Ansible 的 NetApp 模組"^]
+

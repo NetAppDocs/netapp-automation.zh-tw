@@ -1,0 +1,109 @@
+---
+sidebar: sidebar 
+permalink: solutions/ontap-day01-overview.html 
+keywords: bluexp automation catalog, netapp automation solutions, ontap day 0/1, overview, introduction 
+summary: 您可以使用 ONTAP Day 0/1 自動化解決方案、使用 Ansible 來部署和設定 ONTAP 叢集。 
+---
+= ONTAP Day 0/1 解決方案總覽
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+您可以使用 ONTAP Day 0/1 自動化解決方案、使用 Ansible 來部署和設定 ONTAP 叢集。您可以從link:https://console.bluexp.netapp.com/automationCatalog["BlueXP 自動化目錄"^]取得解決方案。
+
+
+
+== 靈活的 ONTAP 部署選項
+
+視您的需求而定、您可以使用內部部署硬體或模擬 ONTAP 、使用 Ansible 來部署和設定 ONTAP 叢集。
+
+.內部部署硬體
+您可以使用執行 ONTAP 的內部部署硬體來部署此解決方案、例如 FAS 或 AFF 系統。您必須使用 Linux VM 來使用 Ansible 來部署和設定 ONTAP 叢集。
+
+.模擬 ONTAP
+若要使用 ONTAP 模擬器部署此解決方案、您必須從 NetApp 支援網站下載最新版的模擬 ONTAP 。模擬 ONTAP 是 ONTAP 軟體的虛擬模擬器。模擬 ONTAP 在 Windows 、 Linux 或 Mac 系統上的 VMware Hypervisor 中執行。對於 Windows 和 Linux 主機、您必須使用 VMware Workstation Hypervisor 來執行此解決方案。如果您有 Mac OS 、請使用 VMware Fusion Hypervisor 。
+
+
+
+== 分層設計
+
+Ansible 架構可簡化自動化執行與邏輯工作的開發與重複使用。此架構可區分決策工作（邏輯層）和自動化的執行步驟（執行層）。瞭解這些層的運作方式、可讓您自訂組態。
+
+Ansible 「教戰手冊」從開始到結束都會執行一系列工作。 `site.yml`本教戰手冊包含了 `logic.yml`教戰手冊和 `execution.yml`教戰手冊。
+
+執行要求時、教戰手冊會 `site.yml`先呼叫 `logic.yml`教戰手冊、然後呼叫 `execution.yml`教戰手冊以執行服務要求。
+
+您不需要使用架構的邏輯層。邏輯層提供選項、可將架構的功能擴充至硬式編碼的執行值以外的範圍。這可讓您視需要自訂架構功能。
+
+.邏輯層
+邏輯層由下列項目組成：
+
+* 教 `logic.yml`戰手冊
+* 目錄中的邏輯工作檔案 `logic-tasks`
+
+
+邏輯層提供複雜決策的功能、無需大量自訂整合（例如連線至 ServiceNow ）。邏輯層是可設定的、可為微服務提供輸入。
+
+此外也提供繞過邏輯層的功能。如果您想略過邏輯層、請勿定義 `logic_operation`變數。直接呼叫 `logic.yml`教戰手冊可讓您在不執行的情況下進行某種程度的偵錯。您可以使用「 DEBUG 」陳述式來驗證的值是否 `raw_service_request`正確。
+
+重要考量：
+
+* 教戰手冊會 `logic.yml`搜尋 `logic_operation`變數。如果在要求中定義變數、它會從目錄載入工作檔案 `logic-tasks`。工作檔案必須是 .yml 檔案。如果沒有相符的工作檔案且已定義變數、則 `logic_operation`邏輯層會失敗。
+* 變數的預設值 `logic_operation`為 `no-op`。如果未明確定義變數、則預設為 `no-op`、不會執行任何作業。
+* 如果 `raw_service_request`已定義變數、則執行會繼續執行至執行層。如果未定義變數、則邏輯層會失敗。
+
+
+.執行層
+執行層由下列項目組成：
+
+* 教 `execution.yml`戰手冊
+
+
+執行層會呼叫 API 以設定 ONTAP 叢集。 `execution.yml`教戰手冊要求 `raw_service_request`在執行時定義變數。
+
+
+
+== 支援自訂
+
+您可以根據自己的需求、以各種方式自訂此解決方案。
+
+自訂選項包括：
+
+* 修改 Ansible 教戰手冊
+* 新增角色
+
+
+.自訂 Ansible 檔案
+下表說明本解決方案所包含的可自訂 Ansible 檔案。
+
+[cols="25,75"]
+|===
+| 位置 | 說明 
+
+
+ a| 
+`playbooks/inventory/hosts`
+| 包含一個包含主機和群組清單的檔案。 
+
+
+ a| 
+`playbooks/group_vars/all/*`
+| Ansible 提供一種便利的方法、可一次將變數套用至多個主機。您可以修改此文件夾中的任何或所有文件，包括 `cfg.yml`、、 `clusters.yml` `defaults.yml` `services.yml` `standards.yml`、和 `vault.yml`。 
+
+
+ a| 
+`playbooks/logic-tasks`
+| 支援 Ansible 內部的決策工作、並維持邏輯與執行的分離。您可以將檔案新增至此資料夾、以對應至相關服務。 
+
+
+ a| 
+`playbooks/vars/*`
+| Ansible 教戰手冊和角色中使用的動態值、可實現組態的自訂、靈活度及重新使用。如有必要、您可以修改此資料夾中的任何或所有檔案。 
+|===
+.自訂角色
+您也可以透過新增或變更 Ansible 角色（也稱為微服務）來自訂解決方案。如需詳細資訊link:ontap-day01-customize.html["自訂"]、請參閱。

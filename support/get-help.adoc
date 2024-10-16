@@ -1,0 +1,35 @@
+---
+sidebar: sidebar 
+permalink: support/get-help.html 
+keywords: help, support, netapp support, technical support, kb, communities 
+summary: NetApp 以多種方式支援其產品和雲端服務。我們全年無休提供豐富的免費自助支援選項、例如知識庫（KB）文章和社群論壇。 
+---
+= 取得協助
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+NetApp 以多種方式支援其產品和雲端服務。我們全年無休提供豐富的免費自助支援選項、例如知識庫（KB）文章和社群論壇。
+
+
+
+== 自我支援選項
+
+* https://kb.netapp.com/["知識庫"^]
++
+搜尋知識庫、找出有助於疑難排解問題的文章。
+
+* http://community.netapp.com/["社群"^]
++
+加入 NetApp 社群、追蹤後續的討論或建立新的討論。
+
+* https://mysupport.netapp.com/["NetApp支援"^]
++
+存取疑難排解工具、文件及技術支援協助。
+
+

@@ -1,0 +1,40 @@
+---
+section: solutions
+title: BlueXP 自動化目錄
+entries:
+- title: 總覽
+  url: "/solutions/bac-overview.html"
+- title: Amazon FSX for NetApp ONTAP 產品
+  entries:
+  - title: 連到雲端
+    url: "/solutions/fsxn-burst-to-cloud.html"
+  - title: 災難恢復
+    url: "/solutions/fsxn-disaster-recovery.html"
+- title: Azure NetApp Files
+  entries:
+  - title: Oracle
+    url: "/solutions/anf-oracle.html"
+- title: AWS 適用的 Cloud Volumes ONTAP
+  entries:
+  - title: 連到雲端
+    url: "/solutions/cvo-aws-burst-to-cloud.html"
+- title: 適用於 Azure Cloud Volumes ONTAP
+  entries:
+  - title: 連到雲端
+    url: "/solutions/cvo-azure-burst-to-cloud.html"
+- title: 適用於 Google Cloud Cloud Volumes ONTAP
+  entries:
+  - title: 連到雲端
+    url: "/solutions/cvo-gcp-burst-to-cloud.html"
+- title: ONTAP
+  entries:
+  - title: 第 0/1 天
+    entries:
+    - title: 總覽
+      url: "/solutions/ontap-day01-overview.html"
+    - title: 準備
+      url: "/solutions/ontap-day01-prepare.html"
+    - title: 部署
+      url: "/solutions/ontap-day01-deploy.html"
+    - title: 自訂
+      url: "/solutions/ontap-day01-customize.html"

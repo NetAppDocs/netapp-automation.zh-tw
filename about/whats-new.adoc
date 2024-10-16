@@ -1,0 +1,53 @@
+---
+sidebar: sidebar 
+permalink: about/whats-new.html 
+keywords: whats new, enhancements, new features 
+summary: NetApp 會定期更新自動化解決方案、產品 REST API 及相關軟體、為您提供新功能、增強功能及錯誤修正。 
+---
+= NetApp 自動化的新功能
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+NetApp 會定期更新自動化解決方案、產品 REST API 及相關軟體、為您提供新功能、增強功能及錯誤修正。
+
+
+
+== 2023 年 7 月 27 日
+
+.Cloud Volumes ONTAP
+Cloud Volumes ONTAP 的支援是由公有雲環境所組織。針對下列雲端環境提供新的解決方案：
+
+* link:../solutions/cvo-gcp-burst-to-cloud.html["Cloud Volumes ONTAP for Google Cloud ：連拍到雲端"]
+
+
+
+
+== 2023 年 6 月 04 日
+
+NetApp https://console.bluexp.netapp.com/automationCatalog["BlueXP 自動化目錄"^] 可透過 BlueXP  網路使用者介面取得。自動化目錄可讓您存取解決方案、協助您自動化部署及整合 NetApp 產品。這些解決方案的說明文件分為幾個不同的產品或功能領域、如下所述。
+
+.Amazon FSX for NetApp ONTAP 產品
+以下提供兩種 Amazon FSX for NetApp ONTAP 解決方案：
+
+* link:../solutions/fsxn-burst-to-cloud.html["Amazon FSX for NetApp ONTAP - 點到雲端"]
+* link:../solutions/fsxn-disaster-recovery.html["Amazon FSX for NetApp ONTAP - 災難恢復"]
+
+
+.Azure NetApp Files
+我們提供的解決方案可協助您使用 Azure NetApp Files 部署 Oracle ：
+
+* link:../solutions/anf-oracle.html["使用 Azure NetApp Files 的 Oracle"]
+
+
+.Cloud Volumes ONTAP
+Cloud Volumes ONTAP 的支援是由公有雲環境所組織。針對兩種雲端環境提供的初始解決方案如下：
+
+* link:../solutions/cvo-aws-burst-to-cloud.html["Cloud Volumes ONTAP AWS - 點到雲端"]
+* link:../solutions/cvo-azure-burst-to-cloud.html["Cloud Volumes ONTAP Azure ：連拍到雲端"]
+

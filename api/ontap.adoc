@@ -1,0 +1,29 @@
+---
+sidebar: sidebar 
+permalink: api/ontap.html 
+keywords: netapp products, product api, rest, rest api, ontap, ontap 9 
+summary: NetApp ONTAP 是業界領先的雲端和內部部署資料管理軟體。ONTAP 包含單一通用 REST API 、每個版本都會持續擴充和增強。請參閱以下說明文件及相關資源、以開始自動化 ONTAP 部署。 
+---
+= 版本9 ONTAP
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+NetApp ONTAP 是業界領先的雲端和內部部署資料管理軟體。ONTAP 包含單一通用 REST API 、每個版本都會持續擴充和增強。請參閱下列文件及相關資源、以開始使用 ONTAP REST API 自動化 ONTAP 部署。
+
+.靜態API ONTAP
+您可以使用 REST API 來自動化 ONTAP 部署的管理。
+
+* https://docs.netapp.com/us-en/ontap-automation/["自動化文件ONTAP"^]
+
+
+.ONTAP 系列
+ONTAP 系列文件包含您安裝及管理 ONTAP 部署所需的一切。
+
+* https://docs.netapp.com/us-en/ontap-family/["產品文件ONTAP"^]
+

@@ -1,0 +1,182 @@
+---
+sidebar: sidebar 
+permalink: solutions/ontap-day01-customize.html 
+keywords: bluexp automation catalog, netapp automation solutions, ontap day 0/1, customize, add roles 
+summary: 若要根據您的需求自訂 ONTAP Day 0/1 解決方案、您可以新增或變更 Ansible 角色。 
+---
+= 自訂 ONTAP Day 0/1 解決方案
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+若要根據您的需求自訂 ONTAP Day 0/1 解決方案、您可以新增或變更 Ansible 角色。
+
+角色代表 Ansible 架構內的微服務。每項微服務都會執行一項作業。例如、 ONTAP Day 0 是包含多個微服務的服務。
+
+
+
+== 新增 Ansible 角色
+
+您可以新增 Ansible 角色、針對您的環境自訂解決方案。必要角色是由 Ansible 架構內的服務定義所定義。
+
+角色必須符合下列需求、才能用作微服務：
+
+* 接受變數中的引數清單 `args`。
+* 使用 Ansible 「區塊、救援、永遠」結構、並針對每個區塊提供特定需求。
+* 使用單一 Ansible 模組、在區塊內定義單一工作。
+* 根據本節所詳述的要求實作每個可用的模組參數。
+
+
+.必要的微服務架構
+每個角色都必須支援下列變數：
+
+* `mode`：如果模式設置爲角色，則 `test`會嘗試導入，以顯示角色在未實際執行的情況下執行的 `test.yml`操作。
++
+
+NOTE: 由於某些相依性、因此不一定能實作此項目。
+
+* `status`：教戰手冊執行的整體狀態。如果值未設定為角色、則 `success`不會執行。
+* `args`：具有與角色參數名稱匹配的關鍵字的角色特定字典列表。
+* `global_log_messages`：在執行教戰手冊期間收集記錄訊息。每次執行角色時都會產生一個項目。
+* `log_name`：用於引用條目的角色的名稱 `global_log_messages`。
+* `task_descr`：職務內容的簡短說明。
+* `service_start_time`：用於追蹤每個角色執行時間的時間戳記。
+* `playbook_status`： Ansible 教戰手冊的狀態。
+* `role_result`：包含角色輸出的變數、會包含在項目中的每則訊息 `global_log_messages`中。
+
+
+
+
+== 角色結構範例
+
+以下範例提供實作微服務之角色的基本結構。您必須針對組態變更本範例中的變數。
+
+.顯示範例
+[%collapsible]
+====
+基本角色結構：
+
+[source, cli]
+----
+- name:  Set some role attributes
+  set_fact:
+    log_name:     "<LOG_NAME>"
+    task_descr:   "<TASK_DESCRIPTION>"
+
+-  name: "{{ log_name }}"
+   block:
+      -  set_fact:
+            service_start_time: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+      -  name: "Provision the new user"
+         <MODULE_NAME>:
+            #-------------------------------------------------------------
+            # COMMON ATTRIBUTES
+            #-------------------------------------------------------------
+            hostname:            "{{ clusters[loop_arg['hostname']]['mgmt_ip'] }}"
+            username:            "{{ clusters[loop_arg['hostname']]['username'] }}"
+            password:            "{{ clusters[loop_arg['hostname']]['password'] }}"
+
+            cert_filepath:       "{{ loop_arg['cert_filepath']                | default(omit) }}"
+            feature_flags:       "{{ loop_arg['feature_flags']                | default(omit) }}"
+            http_port:           "{{ loop_arg['http_port']                    | default(omit) }}"
+            https:               "{{ loop_arg['https']                        | default('true') }}"
+            ontapi:              "{{ loop_arg['ontapi']                       | default(omit) }}"
+            key_filepath:        "{{ loop_arg['key_filepath']                 | default(omit) }}"
+            use_rest:            "{{ loop_arg['use_rest']                     | default(omit) }}"
+            validate_certs:      "{{ loop_arg['validate_certs']               | default('false') }}"
+
+            <MODULE_SPECIFIC_PARAMETERS>
+            #-------------------------------------------------------------
+            # REQUIRED ATTRIBUTES
+            #-------------------------------------------------------------
+            required_parameter:     "{{ loop_arg['required_parameter'] }}"
+            #-------------------------------------------------------------
+            # ATTRIBUTES w/ DEFAULTS
+            #-------------------------------------------------------------
+            defaulted_parameter:    "{{ loop_arg['defaulted_parameter'] | default('default_value') }}"
+            #-------------------------------------------------------------
+            # OPTIONAL ATTRIBUTES
+            #-------------------------------------------------------------
+            optional_parameter:     "{{ loop_arg['optional_parameter'] | default(omit) }}"
+         loop:    "{{ args }}"
+         loop_control:
+            loop_var:   loop_arg
+         register:   role_result
+
+   rescue:
+      -  name: Set role status to FAIL
+         set_fact:
+            playbook_status:   "failed"
+
+   always:
+      -  name: add log msg
+         vars:
+            role_log:
+               role: "{{ log_name }}"
+               timestamp:
+                  start_time: "{{service_start_time}}"
+                  end_time: "{{ lookup('pipe', 'date +%Y-%m-%d@%H:%M:%S') }}"
+               service_status: "{{ playbook_status }}"
+               result: "{{role_result}}"
+         set_fact:
+            global_log_msgs:   "{{ global_log_msgs + [ role_log ] }}"
+----
+====
+.範例角色中使用的變數：
+* `<NAME>`：必須為每個微服務提供可更換的值。
+* `<LOG_NAME>`：用於記錄的角色的簡短名稱。例如 `ONTAP_VOLUME`：。
+* `<TASK_DESCRIPTION>`：微服務的功能簡介。
+* `<MODULE_NAME>`：任務的 Ansible 模塊名稱。
++
+
+NOTE: 最上層的 `execute.yml`教戰手冊會指定 `netapp.ontap`集合。如果模組是集合的一部分、則 `netapp.ontap`不需要完整指定模組名稱。
+
+* `<MODULE_SPECIFIC_PARAMETERS>`：特定於用於實施微服務的模塊的可接受模塊參數。下列清單說明參數類型及其分組方式。
++
+** 必要參數：指定所有必要參數時不使用預設值。
+** 具有微服務特定預設值的參數（與模組文件所指定的預設值不同）。
+** 所有剩餘參數都會用 `default(omit)`作預設值。
+
+
+
+
+
+
+== 使用多層字典做為模組參數
+
+某些 NetApp 提供的 Ansible 模組會使用多層級字典來處理模組參數（例如、固定和調適性 QoS 原則群組）。
+
+使用這些字典時、單獨使用 `default(omit)`並不適用、尤其是當有多個字典且彼此互斥時。
+
+如果您需要使用多層字典做為模組參數、則應將功能分割成多個微服務（角色）、以保證每個字典都能為相關字典提供至少一個二層字典值。
+
+下列範例顯示固定和自適應 QoS 原則群組、可在兩個微服務之間分割。
+
+第一個微服務包含固定的 QoS 原則群組值：
+
+[listing]
+----
+fixed_qos_options:
+  capacity_shared:           "{{ loop_arg['fixed_qos_options']['capacity_shared']         | default(omit) }}"
+  max_throughput_iops:       "{{ loop_arg['fixed_qos_options']['max_throughput_iops']     | default(omit) }}"
+  min_throughput_iops:       "{{ loop_arg['fixed_qos_options']['min_throughput_iops']     | default(omit) }}"
+  max_throughput_mbps:       "{{ loop_arg['fixed_qos_options']['max_throughput_mbps']     | default(omit) }}"
+  min_throughput_mbps:       "{{ loop_arg['fixed_qos_options']['min_throughput_mbps']     | default(omit) }}"
+
+----
+第二個微服務包含調適性 QoS 原則群組值：
+
+[listing]
+----
+adaptive_qos_options:
+  absolute_min_iops:         "{{ loop_arg['adaptive_qos_options']['absolute_min_iops'] | default(omit) }}"
+  expected_iops:             "{{ loop_arg['adaptive_qos_options']['expected_iops']     | default(omit) }}"
+  peak_iops:                 "{{ loop_arg['adaptive_qos_options']['peak_iops']         | default(omit) }}"
+
+----

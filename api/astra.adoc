@@ -1,0 +1,29 @@
+---
+sidebar: sidebar 
+permalink: api/astra.html 
+keywords: netapp products, product api, rest, rest api, astra, astra control 
+summary: Astra Control 是 NetApp 軟體產品、可在多種環境中提供 Kubernetes 叢集的應用程式感知資料管理功能。這兩種部署模式共用一個通用的 REST API 。請參閱下列文件和相關資源、開始自動化 Astra 部署。 
+---
+= Astra Control
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+Astra Control 是 NetApp 軟體產品、可在多種環境中提供 Kubernetes 叢集的應用程式感知資料管理功能。這兩種部署模式共用一個通用的 REST API 。請參閱下列文件和相關資源、開始使用 Astra Control REST API 自動化您的 Astra 部署。
+
+.Astra Control REST API
+您可以使用 REST API 將 Astra Control Service 和 Astra Control Center 部署的管理自動化。
+
+* https://docs.netapp.com/us-en/astra-automation/["Astra Control Automation文件"^]
+
+
+.Astra系列
+Astra 系列文件包含您安裝和管理 Astra 及相關軟體所需的一切。
+
+* https://docs.netapp.com/us-en/astra-family/["Astra文件"^]
+

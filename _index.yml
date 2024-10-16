@@ -1,0 +1,33 @@
+---
+indexpage:
+  title: NetApp自動化
+  summary: NetApp 可讓您存取許多產品的程式設計 API 、以及指令碼化自動化解決方案、協助您自動化 NetApp 產品與服務產品組合的工作負載。
+  keywords: automation, netapp automation
+  lead: NetApp 可讓您存取許多產品的程式設計 API 、以及指令碼化自動化解決方案、協助您自動化 NetApp 產品與服務產品組合的工作負載。
+  tiles:
+  - title: 開始使用
+    links:
+    - title: 新增功能
+      url: "/about/whats-new.html"
+    - title: BlueXP 自動化目錄
+      url: "/solutions/bac-overview.html"
+    - title: 其他資源
+      url: "/support/additional-resources.html"
+  - title: 重點解決方案
+    links:
+    - title: Oracle with Azure NetApp Files
+      url: "/solutions/anf-oracle.html"
+    - title: Amazon FSX for ONTAP - 災難恢復
+      url: "/solutions/fsxn-disaster-recovery.html"
+    - title: ONTAP Day 0/1 部署
+      url: "/solutions/ontap-day01-overview.html"
+  - title: NetApp 產品 API
+    links:
+    - title: ONTAP
+      url: "/api/ontap.html"
+    - title: 藍圖
+      url: "/api/bluexp.html"
+    - title: Astra Control
+      url: "/api/astra.html"
+    - title: Active IQ Unified Manager
+      url: "/api/aiqum.html"

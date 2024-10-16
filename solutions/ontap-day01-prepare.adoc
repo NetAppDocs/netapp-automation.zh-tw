@@ -1,0 +1,207 @@
+---
+sidebar: sidebar 
+permalink: solutions/ontap-day01-prepare.html 
+keywords: bluexp automation catalog, netapp automation solutions, ontap day 0/1, prepare 
+summary: 部署自動化解決方案之前、您必須先準備好 ONTAP 環境、並安裝及設定 Ansible 。 
+---
+= 準備使用 ONTAP Day 0/1 解決方案
+:hardbreaks:
+:allow-uri-read: 
+:nofooter: 
+:icons: font
+:linkattrs: 
+:imagesdir: ./media/
+
+
+[role="lead"]
+部署自動化解決方案之前、您必須先準備好 ONTAP 環境、並安裝及設定 Ansible 。
+
+
+
+== 初始規劃考量
+
+在使用此解決方案部署 ONTAP 叢集之前、您應該先檢閱下列需求和考量事項。
+
+.基本需求
+若要使用此解決方案、您必須符合下列基本要求：
+
+* 您必須能夠在內部部署或透過 ONTAP 模擬器存取 ONTAP 軟體。
+* 您必須知道如何使用 ONTAP 軟體。
+* 您必須知道如何使用 Ansible 自動化軟體工具。
+
+
+.規劃考量
+部署此自動化解決方案之前、您必須先決定：
+
+* 執行 Ansible 控制節點的位置。
+* ONTAP 系統、內部部署硬體或 ONTAP 模擬器。
+* 您是否需要自訂。
+
+
+
+
+== 準備 ONTAP 系統
+
+無論您是使用內部部署 ONTAP 系統或模擬 ONTAP 、都必須先準備好環境、才能部署自動化解決方案。
+
+
+
+=== 您也可以選擇安裝及設定模擬 ONTAP
+
+如果您想要透過 ONTAP 模擬器部署此解決方案、則必須下載並執行模擬 ONTAP 。
+
+.開始之前
+* 您必須下載並安裝要用來執行模擬 ONTAP 的 VMware Hypervisor 。
++
+** 如果您有 Windows 或 Linux 作業系統、請使用 VMware Workstation 。
+** 如果您有 Mac OS 、請使用 VMware Fusion 。
++
+
+NOTE: 如果您使用的是 Mac OS 、則必須使用 Intel 處理器。
+
+
+
+
+
+.步驟
+請使用下列程序在您的本機環境中安裝兩個 ONTAP 模擬器：
+
+. 從下載模擬 ONTAP link:https://mysupport.netapp.com/site/tools/tool-eula/simulate-ontap["NetApp 支援網站"^]。
++
+
+NOTE: 雖然您安裝了兩個 ONTAP 模擬器、但只需下載一份軟體複本。
+
+. 如果尚未執行、請啟動 VMware 應用程式。
+. 找到下載的模擬器檔案、然後按一下滑鼠右鍵、以 VMware 應用程式開啟該檔案。
+. 設定第一個 ONTAP 執行個體的名稱。
+. 等待模擬器開機、並依照指示建立單一節點叢集。
++
+針對第二個 ONTAP 執行個體重複步驟。
+
+. 或者、您也可以新增完整的磁碟補充。
++
+從每個叢集執行下列命令：
+
++
+[source, cli]
+----
+security unlock -username <user_01>
+security login password -username <user_01>
+set -priv advanced
+systemshell local
+disk assign -all -node <Cluster-01>-01
+----
+
+
+
+
+=== ONTAP 系統狀態
+
+您必須驗證 ONTAP 系統的初始狀態、無論是內部部署或透過 ONTAP 模擬器執行。
+
+確認符合下列 ONTAP 系統需求：
+
+* ONTAP 已安裝並在尚未定義叢集的情況下執行。
+* ONTAP 已開機並顯示存取叢集的 IP 位址。
+* 可連線至網路。
+* 您擁有管理認證。
+* 當日訊息（ MOTD ）橫幅會顯示管理位址。
+
+
+
+
+== 安裝所需的自動化軟體
+
+本節提供如何安裝 Ansible 及準備部署自動化解決方案的資訊。
+
+
+
+=== 安裝 Ansible
+
+Ansible 可以安裝在 Linux 或 Windows 系統上。
+
+Ansible 用於與 ONTAP 叢集通訊的預設通訊方法是 SSH 。
+
+請參閱link:https://netapp.io/2018/10/08/getting-started-with-netapp-and-ansible-install-ansible/["NetApp與Ansible快速入門：安裝Ansible"^]以安裝 Ansible 。
+
+
+NOTE: Ansible 必須安裝在系統的控制節點上。
+
+
+
+=== 下載並準備自動化解決方案
+
+您可以使用下列步驟下載並準備部署的自動化解決方案。
+
+. 透過 BlueXP  Web UI 下載link:https://console.bluexp.netapp.com/automationCatalog["ONTAP - Day 0/1  ；健全狀況檢查"^]自動化解決方案。解決方案包裝為 `ONTAP_DAY0_DAY1.zip`。
+. 解壓縮 zip 資料夾、並將檔案複製到 Ansible 環境中控制節點上的所需位置。
+
+
+
+
+== 初始 Ansible 架構組態
+
+執行 Ansible 架構的初始組態：
+
+. 瀏覽至 `playbooks/inventory/group_vars/all`。
+. 解密 `vault.yml`檔案：
++
+`ansible-vault decrypt playbooks/inventory/group_vars/all/vault.yml`
+
++
+當系統提示您輸入資料保險箱密碼時、請輸入下列暫時密碼：
+
++
+`NetApp123!`
+
++
+
+IMPORTANT: "NetApp123!" 是一種用來解密檔案和對應資料保險箱密碼的暫 `vault.yml`存密碼。第一次使用後、您 * 必須 * 使用自己的密碼來加密檔案。
+
+. 修改下列 Ansible 檔案：
++
+** `clusters.yml`- 修改此檔案中的值以符合您的環境。
+** `vault.yml`- 解密檔案後、請修改 ONTAP 叢集、使用者名稱和密碼值、以符合您的環境。
+** `cfg.yml`- 設定的檔案路徑 `log2file`，並在 [ 設定 ] 底下 `cfg`設定 `show_request`為 `True` [ 顯示 `raw_service_request` ] 。
++
+此 `raw_service_request`變數會在記錄檔和執行期間顯示。
+
++
+
+NOTE: 列出的每個檔案都包含註解、並說明如何根據您的需求進行修改。
+
+
+
+. 重新加密 `vault.yml`檔案：
++
+`ansible-vault encrypt playbooks/inventory/group_vars/all/vault.yml`
+
++
+
+NOTE: 系統會提示您在加密時為資料保險箱選擇新密碼。
+
+. 瀏覽 `playbooks/inventory/hosts`並設定有效的 Python 解譯器。
+. 部署 `framework_test`服務：
++
+下列命令會以值為的 `cluster_identity_info`方式執行 `na_ontap_info`模組 `gather_subset`。這會驗證基本組態是否正確、並確認您可以與叢集通訊。
+
++
+[source, cli]
+----
+ansible-playbook -i inventory/hosts site.yml -e cluster_name=<CLUSTER_NAME>
+-e logic_operation=framework-test
+----
++
+為每個叢集執行命令。
+
++
+如果成功、您應該會看到類似下列範例的輸出：
+
++
+[listing]
+----
+PLAY RECAP *********************************************************************************
+localhost : ok=12 changed=1 unreachable=0 failed=0 skipped=6
+The key is ‘rescued=0’ and ‘failed=0’..
+----
+
