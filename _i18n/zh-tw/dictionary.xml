@@ -688,7 +688,6 @@
   <block id="4966eb364a120a592774d73e21aa726d" category="admonition">如果您使用的是 Mac OS 、則必須使用 Intel 處理器。</block>
   <block id="ed4d7e395d1e68d6a963bab9d5840faf" category="paragraph">請使用下列程序在您的本機環境中安裝兩個 ONTAP 模擬器：</block>
   <block id="9c093f14319e8253b8c9b37290597239" category="inline-link-macro">NetApp 支援網站</block>
-  <block id="14d567f38a663518761cb1833f1b3e04" category="list-text">從下載模擬 ONTAP <block ref="22276e5909ee8e6f4b2080a10ab98923" category="inline-link-macro-rx"></block>。</block>
   <block id="7d2f39c9572b8f5bd33d651e0c432667" category="admonition">雖然您安裝了兩個 ONTAP 模擬器、但只需下載一份軟體複本。</block>
   <block id="9dc91177d3e72633b3eb25a758338604" category="list-text">如果尚未執行、請啟動 VMware 應用程式。</block>
   <block id="f817b66fcefdb548feab388a90f4e715" category="list-text">找到下載的模擬器檔案、然後按一下滑鼠右鍵、以 VMware 應用程式開啟該檔案。</block>
@@ -790,4 +789,5 @@
   <block id="08253f1b3a2c24142d028a71b1585bde" category="sidebar">第 0/1 天</block>
   <block id="507a3a88cebc46603ce2be8eaa924eee" category="sidebar">部署</block>
   <block id="0adc03eac86772ad2c75c8f140be417e" category="sidebar">知識與支援</block>
+  <block id="4dead70589033e6b1a6f4a83af3f49df" category="list-text">從下載模擬 ONTAP <block ref="0a7ec0895e09ff6a921ca23880ce50fd" category="inline-link-macro-rx"></block>。</block>
 </blocks>

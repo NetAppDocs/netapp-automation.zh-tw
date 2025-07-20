@@ -66,7 +66,7 @@ NOTE: 如果您使用的是 Mac OS 、則必須使用 Intel 處理器。
 .步驟
 請使用下列程序在您的本機環境中安裝兩個 ONTAP 模擬器：
 
-. 從下載模擬 ONTAP link:https://mysupport.netapp.com/site/tools/tool-eula/simulate-ontap["NetApp 支援網站"^]。
+. 從下載模擬 ONTAP link:https://mysupport.netapp.com/site/tools/tool-eula/ontap-simulate["NetApp 支援網站"^]。
 +
 
 NOTE: 雖然您安裝了兩個 ONTAP 模擬器、但只需下載一份軟體複本。
